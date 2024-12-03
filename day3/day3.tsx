@@ -1,17 +1,28 @@
 import { readFileSync } from "fs";
 
 const levels = readFileSync("./input.txt").toString("utf-8")
-const regex = /mul\(\d{1,3},\d{1,3}\)/g
+function aggregateDoInstructions(value: string) {
+  const regex = /mul\(\d{1,3},\d{1,3}\)/g
+  const matches = value.matchAll(regex)
+  return Array.from(matches).reduce((acc, curr) => {
+    const [left, right] = curr[0].split(",")
+    const leftNumber = left.replace("mul(", "").trim()
+    const rightNumber = right.replace(")", "").trim()
+    return acc += Number(leftNumber) * Number(rightNumber)
+  }, 0)
+}
+
 
 //PART 1
-const matches = levels.matchAll(regex)
-let sum = 0
-for (const x of matches) {
-  const [left, right] = x[0].split(",")
-  const leftNumber = left.replace("mul(", "").trim()
-  const rightNumber = right.replace(")", "").trim()
-  sum += Number(leftNumber) * Number(rightNumber)
-}
-console.log(sum)
+const sum = aggregateDoInstructions(levels)
 
+const sum2 = levels.split("do()").reduce((acc, curr) => {
+  if (curr.includes("don't()")) {
+    const [valid] = curr.split("don't()")
+    return acc += aggregateDoInstructions(valid)
+  } else {
+    return acc += aggregateDoInstructions(curr)
+  }
+}, 0)
 
+console.log(`Day 3, part 1: ${sum}, part 2: ${sum2}`)
